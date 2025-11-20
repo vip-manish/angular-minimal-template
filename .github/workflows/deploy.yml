@@ -1,43 +1,39 @@
-name: Deploy Angular to EC2
+name: Deploy to EC2
 
 on:
   push:
     branches:
-      - main
+      - master   # master पर push होते ही deploy चलेगा
 
 jobs:
   deploy:
+    name: Deploy React App
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: "18"
 
-      - name: Install dependencies
+      - name: Install Dependencies
         run: npm install
 
-      - name: Build Angular App
-        run: npm run build --prod
+      - name: Build App
+        run: npm run build --if-present
 
-      - name: Copy files to EC2
-        uses: appleboy/scp-action@v0.1.4
+      - name: Deploy to EC2 using SSH
+        uses: appleboy/ssh-action@v1.0.0
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          source: "dist/**"
-          target: "/var/www/html"
-
-      - name: Restart server (nginx)
-        uses: appleboy/ssh-action@v0.1.4
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          host: 3.109.209.252
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}     # yeh GitHub me store hoga
           script: |
-            sudo systemctl restart nginx
+            cd /home/ubuntu/angular-minimal-template
+            git pull origin master
+            npm install
+            npm run build
+            pm2 restart app || pm2 start dist/server.js --name app
