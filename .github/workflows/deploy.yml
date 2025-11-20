@@ -3,7 +3,7 @@ name: Deploy to EC2
 on:
   push:
     branches:
-      - master   # master पर push होते ही deploy चलेगा
+      - master
 
 jobs:
   deploy:
@@ -14,7 +14,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-        - name: Setup Node
+      - name: Setup Node
         uses: actions/setup-node@v3
         with:
           node-version: "16"
@@ -30,7 +30,7 @@ jobs:
         with:
           host: 3.109.209.252
           username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}     # yeh GitHub me store hoga
+          key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /home/ubuntu/angular-minimal-template
             git pull origin master
